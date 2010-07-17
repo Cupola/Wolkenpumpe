@@ -1,0 +1,26 @@
+==== Nuages ====
+
+needed for SMC:
+- bypass filter
+[KIND OF WORKING] - insert filter (a: new)
+- dispose proc
+- lazy slider for xfade/ glide
+- how to implement NuagesULoop?
+// vielleicht radikal anderes konzept mit
+// einem globalen buffer-pool?
+- smc: freesound proc
+
+useful for SMC:
+- tablet support
+- disconnect mappings
+- soloing
+- control-room recorder
+- diskin based procs: track playback position
+- meter
+- insert filter (b: existing via drag)
+
+other:
+- gui update glide values
+- gui reflect faded values (how?)
+- selectable proc (evtl. aggregate?)
+- duplicate processes
