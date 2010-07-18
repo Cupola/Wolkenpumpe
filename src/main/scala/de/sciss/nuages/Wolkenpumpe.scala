@@ -29,10 +29,10 @@
 package de.sciss.nuages
 
 import java.awt.Font
-import de.sciss.synth.Model
 import de.sciss.synth.proc._
 import collection.immutable.{ Set => ISet }
-
+import de.sciss.synth._
+import javax.swing.WindowConstants
 //case class NuagesUpdate( gensAdded: ISet[ ProcFactory ], gensRemoved: ISet[ ProcFactory ],
 //                         filtersAdded: ISet[ ProcFactory ], filtersRemoved: ISet[ ProcFactory ])
 
@@ -40,61 +40,93 @@ import collection.immutable.{ Set => ISet }
  *    @version 0.11, 13-Jul-10
  */
 object Wolkenpumpe /* extends TxnModel[ NuagesUpdate ]*/ {
-//   type Update    = NuagesUpdate
-//   type Listener  = TxnModel.Listener[ Update ]
+   val name          = "Wolkenpumpe"
+   val version       = 0.12
+   val copyright     = "(C)opyright 2004-2010 Hanns Holger Rutz"
+   def versionString = (version + 0.001).toString.substring( 0, 4 )
 
-//   val gens    = Ref( Set.empty[ ProcFactory ])
-//   val filters = Ref( Set.empty[ ProcFactory ])
-//
-//   protected def fullUpdate( implicit tx: ProcTxn ) = NuagesUpdate( gens(), Set.empty, filters(), Set.empty )
-//   protected def emptyUpdate = NuagesUpdate( Set.empty, Set.empty, Set.empty, Set.empty )
-//
-//   def add( pf: ProcFactory )( implicit tx: ProcTxn ) {
-//      touch
-//      // we currently use a heuristic to determine
-//      // the kind of proc factory...
-//      pf.params.find( _.name == "in" ) match {
-//         case Some( _: ProcParamAudioInput ) => {
-//            filters.transform( _ + pf )
-//            updateRef.transform( u => if( u.filtersRemoved.contains( pf )) {
-//                u.copy( filtersRemoved = u.filtersRemoved - pf )
-//            } else {
-//                u.copy( filtersAdded = u.filtersAdded + pf )
-//            })
-//         }
-//         case _ => {
-//            gens.transform( _ + pf )
-//            updateRef.transform( u => if( u.gensRemoved.contains( pf )) {
-//                u.copy( gensRemoved = u.gensRemoved - pf )
-//            } else {
-//                u.copy( gensAdded = u.gensAdded + pf )
-//            })
-//         }
-//      }
-//   }
-//
-//   def remove( pf: ProcFactory )( implicit tx: ProcTxn ) {
-//      val f = filters()
-//      if( f.contains( pf )) {
-//         touch
-//         filters.set( f - pf )
-//         updateRef.transform( u => if( u.filtersAdded.contains( pf )) {
-//             u.copy( filtersAdded = u.filtersAdded - pf )
-//         } else {
-//             u.copy( filtersRemoved = u.filtersRemoved + pf )
-//         })
-//      } else {
-//         val g = gens()
-//         if( !g.contains( pf )) return
-//         touch
-//         gens.set( g - pf )
-//         updateRef.transform( u => if( u.gensAdded.contains( pf )) {
-//             u.copy( gensAdded = u.gensAdded - pf )
-//         } else {
-//             u.copy( gensRemoved = u.gensRemoved + pf )
-//         })
-//      }
-//   }
+   def main( args: Array[ String ]) {
+      if( args.size > 0 && args( 0 ) == "--test" ) {
+         test
+      } else {
+         printInfo
+         System.exit( 1 )
+      }
+   }
+
+   def printInfo {
+      println( "\n" + name + " v" + versionString + "\n" + copyright + ". All rights reserved.\n" +
+         "This is a library which cannot be executed directly.\n" )
+   }
+
+   def test {
+      var s : Server = null
+      val booting = Server.boot
+      booting.addListener {
+         case BootingServer.Preparing( srv ) =>
+         case BootingServer.Running( srv ) => {
+            s = srv
+            ProcDemiurg.addServer( srv )
+            val recordPath = "/tmp"
+            val masterBus  = new AudioBus( srv, 0, 2 )
+            val soloBus    = Bus.audio( srv, 2 )
+            val config = NuagesConfig( srv, Some( masterBus ), Some( soloBus ), Some( recordPath ))
+            val f = new NuagesFrame( config )
+            f.setDefaultCloseOperation( WindowConstants.EXIT_ON_CLOSE )
+            f.setSize( 640, 480 )
+            f.setVisible( true )
+            ProcTxn.atomic { implicit tx =>
+               import de.sciss.synth.proc.DSL._
+               import de.sciss.synth._
+               import de.sciss.synth.ugen._
+
+               gen( "Sprink" ) {
+                  val pfreq = pAudio( "freq", ParamSpec( 0.2, 50 ), 1 )
+                  graph {
+                     BPZ2.ar( WhiteNoise.ar( LFPulse.ar( pfreq.ar, 0, 0.25 ) * List( 0.1, 0.1 )))
+                  }
+               }
+
+               filter( "Filt" ) {
+                  val pfreq = pAudio( "freq", ParamSpec( -1, 1 ), 0.54 )
+                  val pmix  = pAudio( "mix", ParamSpec( 0, 1 ), 1 )
+
+                  graph { in =>
+                     val normFreq   = pfreq.ar
+                     val lowFreqN	= Lag.ar( Clip.ar( normFreq, -1, 0 ))
+                     val highFreqN  = Lag.ar( Clip.ar( normFreq,  0, 1 ))
+                     val lowFreq	   = LinExp.ar( lowFreqN, -1, 0, 30, 20000 )
+                     val highFreq   = LinExp.ar( highFreqN, 0, 1, 30, 20000 )
+                     val lowMix	   = Clip.ar( lowFreqN * -10.0, 0, 1 )
+                     val highMix	   = Clip.ar( highFreqN * 10.0, 0, 1 )
+                     val dryMix	   = 1 - (lowMix + highMix)
+                     val lpf		   = LPF.ar( in, lowFreq ) * lowMix
+                     val hpf		   = HPF.ar( in, highFreq ) * highMix
+                     val dry		   = in * dryMix
+                     val flt		   = dry + lpf + hpf
+                     LinXFade2.ar( in, flt, pmix.ar * 2 - 1 )
+                  }
+               }
+
+               diff( "Out" ) {
+                   val pamp  = pAudio( "amp", ParamSpec( 0.01, 10, ExpWarp ), 1 )
+                   val pout  = pAudioOut( "out", Some( RichBus.wrap( masterBus )))
+
+                   graph { in => pout.ar( in * pamp.ar )}
+               }
+            }
+         }
+      }
+      Runtime.getRuntime().addShutdownHook( new Thread { override def run = {
+         if( (s != null) && (s.condition != Server.Offline) ) {
+            s.quit
+            s = null
+         } else {
+            booting.abort
+         }
+      }})
+      booting.start
+   }
 
    /**
     *    A condensed font for GUI usage. This is in 12 pt size,

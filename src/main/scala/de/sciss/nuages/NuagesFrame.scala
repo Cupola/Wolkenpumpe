@@ -30,27 +30,32 @@ package de.sciss.nuages
 
 import javax.swing._
 import de.sciss.synth.{Server, Model}
-import javax.swing.event.{ListSelectionListener, ListSelectionEvent}
 import java.awt.geom.Point2D
 import collection.mutable.ListBuffer
-import java.awt._
-import plaf.basic.BasicPanelUI
+import de.sciss.synth._
 import de.sciss.synth.proc._
+import de.sciss.synth.ugen._
+import plaf.basic.{BasicSliderUI, BasicPanelUI}
+import javax.swing.event.{ChangeListener, ChangeEvent, ListSelectionListener, ListSelectionEvent}
+import java.awt.{EventQueue, Component, Container, Color, BorderLayout}
 
 /**
- *    @version 0.12, 12-Jul-10
+ *    @version 0.12, 18-Jul-10
  */
-class NuagesFrame( server: Server )
+class NuagesFrame( val config: NuagesConfig )
 extends JFrame( "Wolkenpumpe") with ProcDemiurg.Listener {
    frame =>
 
-   private val ggPanel     = new NuagesPanel( server )
+   val panel               = new NuagesPanel( config.server )
    private val pfPanel     = Box.createVerticalBox
+   val transition          = new NuagesTransitionPanel( panel )
    private val models      = Map[ ProcAnatomy, ProcFactoryListModel ](
-      ProcGen     -> createProcFactoryView( pfPanel )( ggPanel.genFactory = _ ),
-      ProcFilter  -> createProcFactoryView( pfPanel )( ggPanel.filterFactory = _ ),
-      ProcDiff    -> createProcFactoryView( pfPanel )( ggPanel.diffFactory = _ ))
+      ProcGen     -> createProcFactoryView( pfPanel )( panel.genFactory = _ ),
+      ProcFilter  -> createProcFactoryView( pfPanel )( panel.filterFactory = _ ),
+      ProcDiff    -> createProcFactoryView( pfPanel )( panel.diffFactory = _ ))
 
+   val grpMaster = Group.tail( config.server )
+   
    // ---- constructor ----
    {
       val cp = getContentPane
@@ -63,14 +68,44 @@ extends JFrame( "Wolkenpumpe") with ProcDemiurg.Listener {
       ggEastBox.setUI( uiPanel )
       ggEastBox.setBackground( Color.black )
       ggEastBox.add( pfPanel, BorderLayout.CENTER )
-      val ggTransition = new NuagesTransitionPanel( ggPanel )
-      ggEastBox.add( ggTransition, BorderLayout.SOUTH )
+      ggEastBox.add( transition, BorderLayout.SOUTH )
       cp.add( BorderLayout.EAST, ggEastBox )
-      cp.add( BorderLayout.CENTER, ggPanel )
+      cp.add( BorderLayout.CENTER, panel )
 
       setDefaultCloseOperation( WindowConstants.DISPOSE_ON_CLOSE )
 
+      config.masterBus foreach { abus =>
+         val specSlider       = ParamSpec( 0, 0x10000 )
+         val specAmp          = ParamSpec( 0.01, 10.0, ExpWarp )
+         val initVal          = specSlider.map( specAmp.unmap( 1.0 )).toInt
+         val ggMasterVolume   = new JSlider( SwingConstants.VERTICAL, specSlider.lo.toInt, specSlider.hi.toInt, initVal )
+         ggMasterVolume.setUI( new BasicSliderUI( ggMasterVolume ))
+         ggMasterVolume.setBackground( Color.black )
+         ggMasterVolume.setForeground( Color.white )
+         ggMasterVolume.addChangeListener( new ChangeListener {
+            def stateChanged( e: ChangeEvent ) {
+               val amp = specAmp.map( specSlider.unmap( ggMasterVolume.getValue ))
+               grpMaster.set( "amp" -> amp )
+            }
+         })
+         ggEastBox.add( ggMasterVolume, BorderLayout.EAST )
+      }
+
+      initAudio
+
       ProcTxn.atomic { implicit t => ProcDemiurg.addListener( frame )}
+   }
+
+   private def initAudio {
+      config.masterBus foreach { abus =>
+         val df = SynthDef( "nuages-master" ) {
+            val bus  = "bus".kr
+            val amp  = "amp".kr( 1 )
+            val sig  = In.ar( bus, abus.numChannels )
+            ReplaceOut.ar( bus, Limiter.ar( sig * amp, (-0.2).dbamp ))
+         }
+         df.play( grpMaster, List( "bus" -> abus.index ))
+      }
    }
 
    def updated( u: ProcDemiurg.Update ) { defer {
@@ -118,7 +153,7 @@ extends JFrame( "Wolkenpumpe") with ProcDemiurg.Listener {
 
    override def dispose {
       ProcTxn.atomic { implicit t => ProcDemiurg.removeListener( frame )}
-      ggPanel.dispose
+      panel.dispose
       super.dispose
    }
 

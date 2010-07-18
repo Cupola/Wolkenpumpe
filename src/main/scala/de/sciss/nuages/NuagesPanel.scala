@@ -65,6 +65,9 @@ object NuagesPanel {
       val colrMapped    = new Color( 210, 60, 60 )
       val colrManual    = new Color( 60, 60, 240 )
       val colrGliding   = new Color( 135, 60, 150 )
+      val colrAdjust    = new Color( 0xFF, 0xC0, 0x00 )
+
+      val strkThick     = new BasicStroke( 2f )
    }
 
    private[nuages] trait VisualData {
@@ -79,6 +82,8 @@ object NuagesPanel {
       protected val margin   = diam * 0.2
       protected val margin2  = margin * 2
       protected val gp       = new GeneralPath()
+
+      protected def main: NuagesPanel
 
       def update( shp: Shape ) {
          val newR = shp.getBounds2D()
@@ -115,16 +120,23 @@ object NuagesPanel {
       def itemDragged( vi: VisualItem, e: MouseEvent, pt: Point2D ) {}
 
       protected def drawName( g: Graphics2D, vi: VisualItem, font: Font ) {
-//         val cx   = r.getWidth() / 2
-//         val cy   = r.getHeight() / 2
-//         g.setFont( font )
-//         val fm   = g.getFontMetrics()
          g.setColor( ColorLib.getColor( vi.getTextColor() ))
+         if( main.display.isHighQuality ) {
+            drawNameHQ( g, vi, font )
+         } else {
+            val cx   = r.getWidth() / 2
+            val cy   = r.getHeight() / 2
+            g.setFont( font )
+            val fm   = g.getFontMetrics()
+            val n    = name
+            g.drawString( n, (cx - (fm.stringWidth( n ) * 0.5)).toInt,
+                             (cy + ((fm.getAscent() - fm.getLeading()) * 0.5)).toInt )
+         }
+      }
+      
+      private def drawNameHQ( g: Graphics2D, vi: VisualItem, font: Font ) {
          val n    = name
-//         g.drawString( n, (cx - (fm.stringWidth( n ) * 0.5)).toFloat,
-//                          (cy + ((fm.getAscent() - fm.getLeading()) * 0.5)).toFloat )
          val v = font.createGlyphVector( g.getFontRenderContext(), n )
-//         val vb = v.getVisualBounds()
          val vvb = v.getVisualBounds()
          val vlb = v.getLogicalBounds()
 
@@ -196,7 +208,7 @@ object NuagesPanel {
    }
 
 //   private[nuages] case class VisualBus( param: ProcParamAudioBus, pNode: PNode, pEdge: Edge )
-   private[nuages] case class VisualAudioInput( bus: ProcAudioInput, pNode: PNode, pEdge: Edge )
+   private[nuages] case class VisualAudioInput( main: NuagesPanel, bus: ProcAudioInput, pNode: PNode, pEdge: Edge )
    extends VisualParam {
       import VisualData._
 
@@ -210,7 +222,7 @@ object NuagesPanel {
       }
    }
 
-   private[nuages] case class VisualAudioOutput( bus: ProcAudioOutput, pNode: PNode, pEdge: Edge )
+   private[nuages] case class VisualAudioOutput( main: NuagesPanel, bus: ProcAudioOutput, pNode: PNode, pEdge: Edge )
    extends VisualParam {
       import VisualData._
 
@@ -251,23 +263,28 @@ object NuagesPanel {
             val dy   = r.getCenterY() - pt.getY()
             val dx   = pt.getX() - r.getCenterX()
             val ang  = math.max( 0.0, math.min( 1.0, (((-math.atan2( dy, dx ) / math.Pi + 3.5) % 2.0) - 0.25) / 1.5 ))
+            val instant = main.transition( 0 ) == Instant
             val vStart = if( e.isAltDown() ) {
 //               val res = math.min( 1.0f, (((ang / math.Pi + 3.25) % 2.0) / 1.5).toFloat )
 //               if( ang != value ) {
                   val m    = control.spec.map( ang )
-                  setControl( control, m )
+                  if( instant ) setControl( control, m, true )
 //               }
                ang
             } else control.spec.unmap( value.currentApprox )
-            val dr = Drag( ang, vStart )
+            val dr = Drag( ang, vStart, instant )
             drag = Some( dr )
             true
          } else false
       }
 
-      private def setControl( c: ProcControl, v: Double ) {
+      private def setControl( c: ProcControl, v: Double, instant: Boolean ) {
          ProcTxn.atomic { implicit t =>
-            t.withTransition( main.transition( t.time )) { c.v = v }
+            if( instant ) {
+               c.v = v
+            } else t.withTransition( main.transition( t.time )) {
+               c.v = v
+            }
          }
       }
 
@@ -280,13 +297,22 @@ object NuagesPanel {
             val vEff = math.max( 0.0, math.min( 1.0, dr.valueStart + (ang - dr.angStart) ))
 //            if( vEff != value ) {
                val m    = control.spec.map( vEff )
-               setControl( control, m )
+               if( dr.instant ) {
+                  setControl( control, m, true )
+               } else {
+                  dr.dragValue = m
+               }
 //            }
          })
       }
 
       override def itemReleased( vi: VisualItem, e: MouseEvent, pt: Point2D ) {
-         drag = None
+         drag foreach { dr =>
+            if( !dr.instant ) {
+               setControl( control, dr.dragValue, false )
+            }
+            drag = None
+         }
       }
 
       protected def boundsResized {
@@ -318,6 +344,25 @@ object NuagesPanel {
             }
             g.setColor( if( mapping.isDefined ) colrMapped else if( gliding ) colrGliding else colrManual )
             g.fill( valueArea )
+            drag foreach { dr => if( !dr.instant ) {
+               g.setColor( colrAdjust )
+               val ang  = ((1.0 - control.spec.unmap( dr.dragValue )) * 1.5 - 0.25) * math.Pi
+//               val cx   = diam * 0.5 // r.getCenterX
+//               val cy   = diam * 0.5 // r.getCenterY
+               val cos  = math.cos( ang )
+               val sin  = math.sin( ang )
+//               val lin  = new Line2D.Double( cx + cos * diam*0.5, cy - sin * diam*0.5,
+//                                             cx + cos * diam*0.3, cy - sin * diam*0.3 )
+               val diam05 = diam * 0.5
+               val x0 = (1 + cos) * diam05
+               val y0 = (1 - sin) * diam05
+               val lin  = new Line2D.Double( x0, y0,
+                                             x0 - (cos * diam * 0.2), y0 + (sin * diam * 0.2) )
+               val strkOrig = g.getStroke
+               g.setStroke( strkThick )
+               g.draw( lin )
+               g.setStroke( strkOrig )
+            }}
          }
          g.setColor( ColorLib.getColor( vi.getStrokeColor ))
          g.draw( gp )
@@ -326,7 +371,9 @@ object NuagesPanel {
          drawName( g, vi, font )
       }
 
-      private case class Drag( angStart: Double, valueStart: Double )
+      private case class Drag( angStart: Double, valueStart: Double, instant: Boolean ) {
+         var dragValue = valueStart
+      }
    }
 
    private[nuages] val COL_NUAGES = "nuages"
@@ -635,7 +682,7 @@ with ProcFactoryProvider {
                val (pParamNode, pParamEdge, vi) = createNode
                vi.set( VisualItem.SIZE, 0.33333f )
                val pBus = p.audioInput( pParamBus.name )
-               val vBus = VisualAudioInput( pBus, pParamNode, pParamEdge )
+               val vBus = VisualAudioInput( panel, pBus, pParamNode, pParamEdge )
                vi.set( COL_NUAGES, vBus )
                vBus.name -> vBus
             }
@@ -643,7 +690,7 @@ with ProcFactoryProvider {
                val (pParamNode, pParamEdge, vi) = createNode
                vi.set( VisualItem.SIZE, 0.33333f )
                val pBus = p.audioOutput( pParamBus.name )
-               val vBus = VisualAudioOutput( pBus, pParamNode, pParamEdge )
+               val vBus = VisualAudioOutput( panel, pBus, pParamNode, pParamEdge )
                vi.set( COL_NUAGES, vBus )
                vBus.name -> vBus
             }

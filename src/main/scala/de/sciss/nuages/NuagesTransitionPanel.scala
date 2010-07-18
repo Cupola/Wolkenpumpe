@@ -6,6 +6,7 @@ import java.awt.Color
 import plaf.basic.{BasicSliderUI, BasicPanelUI}
 import de.sciss.synth.proc._
 import java.awt.event.{ActionListener, ActionEvent}
+import collection.JavaConversions
 
 /**
  *    @version 0.11, 12-Jul-10
@@ -13,10 +14,15 @@ import java.awt.event.{ActionListener, ActionEvent}
 class NuagesTransitionPanel( main: NuagesPanel ) extends JPanel {
    panel =>
 
+   private val bg                            = new ButtonGroup()
+   private var models : Array[ ButtonModel ] = _
+   private val specSlider                    = ParamSpec( 0, 0x10000 )
+   private val specTime                      = ParamSpec( 0.06, 60.0, ExpWarp )
+   private val ggSlider                      = new JSlider( specSlider.lo.toInt, specSlider.hi.toInt )
+
    // ---- constructor ----
    {
       val font       = Wolkenpumpe.condensedFont.deriveFont( 15f ) // WARNING: use float argument
-      val bg         = new ButtonGroup()
       val uiToggle   = new SimpleToggleButtonUI
       val box        = Box.createHorizontalBox()
 
@@ -37,11 +43,9 @@ class NuagesTransitionPanel( main: NuagesPanel ) extends JPanel {
       addButton( ggTypeInstant )
       addButton( ggTypeGlide )
       addButton( ggTypeXFade )
+      models   = new JavaConversions.JEnumerationWrapper( bg.getElements() ).toArray.map( _.getModel() )
       panel.setLayout( new BoxLayout( panel, BoxLayout.Y_AXIS ))
       panel.add( box )
-      val ggSlider      = new JSlider( 0, 0x10000 )
-      val specSlider    = ParamSpec( ggSlider.getMinimum(), ggSlider.getMaximum() )
-      val specTime      = ParamSpec( 0.06, 60.0, ExpWarp )
       ggSlider.setUI( new BasicSliderUI( ggSlider ))
       ggSlider.setBackground( Color.black )
       ggSlider.setForeground( Color.white )
@@ -76,5 +80,18 @@ class NuagesTransitionPanel( main: NuagesPanel ) extends JPanel {
       ggTypeInstant.addActionListener( actionListener )
       ggTypeGlide.addActionListener( actionListener )
       ggTypeXFade.addActionListener( actionListener )
+   }
+
+   def setTransition( idx: Int, tNorm: Double ) {
+      if( idx < 0 || idx > 2 ) return
+      bg.setSelected( models( idx ), true )
+      if( idx == 0 ) {
+         main.transition = (_) => Instant
+      } else {
+         val tNormC  = math.max( 0.0, math.min( 1.0, tNorm ))
+         val fdt     = specTime.map( tNormC ) 
+         ggSlider.setValue( specSlider.map( tNormC ).toInt )
+         main.transition = if( idx == 1 ) Glide( _, fdt ) else XFade( _, fdt )
+      }
    }
 }

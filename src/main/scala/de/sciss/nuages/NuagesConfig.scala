@@ -1,11 +1,13 @@
 package de.sciss.nuages
 
-/**
- * Created by IntelliJ IDEA.
- * User: rutz
- * Date: 18.07.2010
- * Time: 15:36:32
- * To change this template use File | Settings | File Templates.
- */
+import de.sciss.synth.{AudioBus, Server}
 
-object NuagesConfig
+/**
+ *    @version 0.10, 18-Jul-10
+ */
+case class NuagesConfig(
+   server: Server,
+   masterBus: Option[ AudioBus ],
+   soloBus: Option[ AudioBus ],
+   recordPath: Option[ String ]
+)

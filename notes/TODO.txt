@@ -4,14 +4,15 @@ needed for SMC:
 - bypass filter
 [KIND OF WORKING] - insert filter (a: new)
 - dispose proc
-- lazy slider for xfade/ glide
+[OK] - lazy slider for xfade/ glide
 - how to implement NuagesULoop?
 // vielleicht radikal anderes konzept mit
 // einem globalen buffer-pool?
-- smc: freesound proc
+[OK] - smc: freesound proc
+[OK] - master volume control
 
 useful for SMC:
-- tablet support
+[OK] - tablet support
 - disconnect mappings
 - soloing
 - control-room recorder
@@ -20,7 +21,7 @@ useful for SMC:
 - insert filter (b: existing via drag)
 
 other:
-- gui update glide values
+[OK] - gui update glide values
 - gui reflect faded values (how?)
 - selectable proc (evtl. aggregate?)
 - duplicate processes
