@@ -108,6 +108,30 @@ object Wolkenpumpe /* extends TxnModel[ NuagesUpdate ]*/ {
                   }
                }
 
+               filter( "Achil") {
+                  val pspeed  = pAudio( "speed", ParamSpec( 0.125, 2.3511, ExpWarp ), 0.5 )
+                  val pmix    = pAudio( "mix", ParamSpec( 0, 1 ), 1 )
+
+                  graph { in =>
+                     val speed	   = Lag.ar( pspeed.ar, 0.1 )
+                     val numFrames  = sampleRate.toInt
+                     val numChannels= in.numOutputs
+                     val buf        = bufEmpty( numFrames, numChannels )
+                     val bufID      = buf.id
+                     val writeRate  = BufRateScale.kr( bufID )
+                     val readRate   = writeRate * speed
+                     val readPhasor = Phasor.ar( 0, readRate, 0, numFrames )
+                     val read			= BufRd.ar( numChannels, bufID, readPhasor, 0, 4 )
+                     val writePhasor= Phasor.ar( 0, writeRate, 0, numFrames )
+                     val old			= BufRd.ar( numChannels, bufID, writePhasor, 0, 1 )
+                     val wet0 		= SinOsc.ar( 0, ((readPhasor - writePhasor).abs / numFrames * math.Pi) )
+                     val dry			= 1 - wet0.squared
+                     val wet			= 1 - (1 - wet0).squared
+                     BufWr.ar( (old * dry) + (in * wet), bufID, writePhasor )
+                     LinXFade2.ar( in, read, pmix.ar * 2 - 1 )
+                  }
+               }
+
                diff( "Out" ) {
                    val pamp  = pAudio( "amp", ParamSpec( 0.01, 10, ExpWarp ), 1 )
                    val pout  = pAudioOut( "out", Some( RichBus.wrap( masterBus )))
