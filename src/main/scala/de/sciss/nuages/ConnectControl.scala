@@ -29,7 +29,6 @@
 package de.sciss.nuages
 
 import prefuse.controls.ControlAdapter
-import prefuse.Display
 import prefuse.visual.{NodeItem, VisualItem}
 import java.awt.event.MouseEvent
 import prefuse.util.display.PaintListener
@@ -37,8 +36,10 @@ import prefuse.util.ColorLib
 import java.awt.{Color, BasicStroke, Paint, Graphics2D}
 import java.awt.geom.{Line2D, Point2D}
 import de.sciss.synth.proc.{ProcTxn, ProcParamAudioInput, ProcParamAudioOutput}
+import prefuse.{Visualization, Display}
 
-class ConnectControl extends ControlAdapter with PaintListener {
+class ConnectControl( vis: Visualization )
+extends ControlAdapter with PaintListener {
    control =>
    
    import NuagesPanel._
@@ -134,9 +135,9 @@ class ConnectControl extends ControlAdapter with PaintListener {
             case _ => None
          }
          if( tgt != dr.target ) {
-            dr.target.foreach( _.vi.setFixed( false ))
+            dr.target.foreach( t => DragControl.setSmartFixed( vis, t.vi, false ))
             dr.target = tgt
-            dr.target.foreach( _.vi.setFixed( true ))
+            dr.target.foreach( t => DragControl.setSmartFixed( vis, t.vi, false ))
          }
       })
    }
@@ -153,7 +154,7 @@ class ConnectControl extends ControlAdapter with PaintListener {
          d.removePaintListener( control )
          drag = None
          dr.target.foreach( tgt => {
-            tgt.vi.setFixed( false )
+            DragControl.setSmartFixed( vis, tgt.vi, false )
             tgt.visual match {
                case vBus: VisualAudioInput => {
                   ProcTxn.atomic { implicit t => dr.source.visual.bus.~>( vBus.bus )}

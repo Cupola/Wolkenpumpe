@@ -31,11 +31,14 @@ package de.sciss.nuages
 import prefuse.controls.ControlAdapter
 import java.awt.event.MouseEvent
 import javax.swing.{ListModel, ListSelectionModel}
-import java.awt.geom.Point2D
-import prefuse.visual.{VisualItem, EdgeItem}
 import prefuse.{Visualization, Display}
 import de.sciss.synth.proc._
 import DSL._
+import prefuse.visual.{NodeItem, VisualItem, EdgeItem}
+import de.sciss.synth.control
+import prefuse.util.GraphicsLib
+import prefuse.util.display.DisplayLib
+import java.awt.geom.{Rectangle2D, Point2D}
 
 /**
  *    Simple interface to query currently selected
@@ -58,7 +61,12 @@ class ClickControl( main: NuagesPanel ) extends ControlAdapter {
    import NuagesPanel._
 
    override def mousePressed( e: MouseEvent ) {
-      if( e.getClickCount() != 2 ) return
+      if( e.isMetaDown() ) {
+         zoomToFit( e )
+      } else if( e.getClickCount() == 2 ) insertProc( e )
+   }
+
+   private def insertProc( e: MouseEvent ) {
       (main.genFactory, main.diffFactory) match {
          case (Some( genF ), Some( diffF )) => {
             val d          = getDisplay( e )
@@ -84,7 +92,30 @@ class ClickControl( main: NuagesPanel ) extends ControlAdapter {
    }
 
    override def itemPressed( vi: VisualItem, e: MouseEvent ) {
-      if( e.getClickCount() != 2 ) return
+      if( e.isAltDown() ) return
+      if( e.isMetaDown() ) {
+         zoom( e, vi.getBounds() )
+      } else if( e.getClickCount() == 2 ) doubleClick( vi, e )
+//      if( e.isAltDown() ) altClick( vi, e )
+   }
+
+   private def zoomToFit( e: MouseEvent ) {
+      val d       = getDisplay( e )
+      val vis     = d.getVisualization()
+      val bounds  = vis.getBounds( NuagesPanel.GROUP_GRAPH )
+      zoom( e, bounds )
+   }
+
+   private def zoom( e: MouseEvent, bounds: Rectangle2D ) {
+      val d = getDisplay( e )
+      if( d.isTranformInProgress() ) return
+      val margin     = 50   // XXX could be customized
+      val duration   = 1000 // XXX could be customized
+      GraphicsLib.expand( bounds, margin + (1 / d.getScale()).toInt )
+      DisplayLib.fitViewToBounds( d, bounds, duration )
+   }
+
+   private def doubleClick( vi: VisualItem, e: MouseEvent ) {
       vi match {
          case ei: EdgeItem => {
             val nSrc = ei.getSourceItem
@@ -98,6 +129,8 @@ class ClickControl( main: NuagesPanel ) extends ControlAdapter {
                         case (vOut: VisualAudioOutput, vIn: VisualAudioInput) => main.filterFactory foreach { filterF =>
                            val d          = getDisplay( e )
                            val displayPt  = d.getAbsoluteCoordinate( e.getPoint(), null )
+                           nSrc.setFixed( false ) // XXX woops.... we have to clean up the mess of ConnectControl
+                           nTgt.setFixed( false )
                            createFilter( vOut.bus, vIn.bus, filterF, displayPt )
                         }
                         case _ =>
@@ -114,13 +147,16 @@ class ClickControl( main: NuagesPanel ) extends ControlAdapter {
    private def createFilter( out: ProcAudioOutput, in: ProcAudioInput, filterF: ProcFactory, pt: Point2D ) {
 //      println( "CREATE FILTER " + out.name + " ~| " + filterF.name + " |> " + in.bus.name )
       ProcTxn.atomic { implicit tx =>
-         tx.withTransition( main.transition( tx.time )) {
-            val filter  = filterF.make
-            out ~|filter|> in
-            tx.beforeCommit { _ =>
-               main.setLocationHint( filter, pt )
-            }
+         val filter  = filterF.make
+         filter.bypass
+         out ~|filter|> in
+         if( !filter.isPlaying ) filter.play
+         tx.beforeCommit { _ =>
+            main.setLocationHint( filter, pt )
          }
+//         tx.withTransition( main.transition( tx.time )) {
+//            out ~|filter|> in
+//         }
       }
    }
 

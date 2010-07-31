@@ -30,6 +30,7 @@ package de.sciss.nuages
 
 import javax.swing.JPanel
 import collection.breakOut
+import collection.mutable.{ Set => MSet }
 import collection.immutable.{ IndexedSeq => IIdxSeq, IntMap }
 import prefuse.{Constants, Display, Visualization}
 import prefuse.action.{RepaintAction, ActionList}
@@ -49,12 +50,17 @@ import java.awt._
 import event.MouseEvent
 import geom._
 import prefuse.visual.{NodeItem, AggregateItem, VisualItem}
+import java.util.TimerTask
 
 /**
- *    @version 0.11, 14-Jul-10
+ *    @version 0.11, 21-Jul-10
  */
 object NuagesPanel {
-   var verbose = false
+   var verbose = true
+
+   val GROUP_GRAPH          = "graph"
+   val GROUP_NODES          = "graph.nodes"
+   val GROUP_EDGES          = "graph.edges"
 
    private[nuages] object VisualData {
       val diam  = 50
@@ -62,18 +68,21 @@ object NuagesPanel {
 
       val colrPlaying   = new Color( 0x00, 0xC0, 0x00 )
       val colrStopped   = new Color( 0x80, 0x80, 0x80 )
+      val colrBypassed  = new Color( 0xFF, 0xC0, 0x00 )
       val colrMapped    = new Color( 210, 60, 60 )
       val colrManual    = new Color( 60, 60, 240 )
       val colrGliding   = new Color( 135, 60, 150 )
       val colrAdjust    = new Color( 0xFF, 0xC0, 0x00 )
 
       val strkThick     = new BasicStroke( 2f )
+
+//      val stateColors   = Array( colrStopped, colrPlaying, colrStopped, colrBypassed )
    }
 
    private[nuages] trait VisualData {
       import VisualData._
       
-      var valid   = false // needs validation first!
+//      var valid   = false // needs validation first!
 
       protected val r: Rectangle2D    = new Rectangle2D.Double()
       protected var outline : Shape   = r
@@ -158,26 +167,124 @@ object NuagesPanel {
 
    private[nuages] case class VisualProc( main: NuagesPanel, proc: Proc, pNode: PNode, aggr: AggregateItem,
                                           params: Map[ String, VisualParam ]) extends VisualData {
+      vproc =>
+
       import VisualData._
 
-      var playing = false
+//      var playing = false
+      private var stateVar = Proc.State( false )
+      @volatile private var disposeAfterFade = false
 
       private val playArea = new Area()
 
       def name : String = proc.name
 
+      def isAlive = stateVar.valid && !disposeAfterFade
+      def state = stateVar
+      def state_=( value: Proc.State ) {
+         stateVar = value
+         if( disposeAfterFade && !value.fading ) disposeProc
+      }
+
       override def itemPressed( vi: VisualItem, e: MouseEvent, pt: Point2D ) : Boolean = {
-         if( !valid ) return false
+         if( !isAlive ) return false
          if( super.itemPressed( vi, e, pt )) return true
 
-         if( playArea.contains( pt.getX() - r.getX(), pt.getY() - r.getY() )) {
+         val xt = pt.getX() - r.getX()
+         val yt = pt.getY() - r.getY()
+         if( playArea.contains( xt, yt )) {
             ProcTxn.atomic { implicit t =>
                t.withTransition( main.transition( t.time )) {
-                  if( playing ) proc.stop else proc.play
+//println( "AQUI : state = " + state )
+                  if( stateVar.playing ) {
+                     if( proc.anatomy == ProcFilter ) {
+//println( "--> BYPASSED = " + !state.bypassed )
+                        if( stateVar.bypassed ) proc.engage else proc.bypass
+                     } else {
+//println( "--> STOP" )
+                        proc.stop
+                     }
+                  } else {
+//println( "--> PLAY" )
+                     proc.play
+                  }
                }
             }
             true
+         } else if( outerE.contains( xt, yt ) & e.isAltDown() ) {
+            val instant = !stateVar.playing || stateVar.bypassed || (main.transition( 0 ) == Instant)
+            proc.anatomy match {
+               case ProcFilter => {
+   //println( "INSTANT = " + instant + "; PLAYING? " + stateVar.playing + "; BYPASSED? " + stateVar.bypassed )
+                  ProcTxn.atomic { implicit t =>
+                     if( instant ) disposeFilter else {
+                        t.afterCommit { _ => disposeAfterFade = true }
+                        t.withTransition( main.transition( t.time )) { proc.bypass }
+                     }
+                  }
+               }
+               case ProcDiff => {
+                  ProcTxn.atomic { implicit t =>
+//                     val toDispose = MSet.empty[ VisualProc ]()
+//                     addToDisposal( toDispose, vproc )
+
+                     if( instant ) disposeGenDiff else {
+                        t.afterCommit { _ => disposeAfterFade = true }
+                        t.withTransition( main.transition( t.time )) { proc.stop }
+                     }
+                  }
+               }
+               case _ =>
+            }
+            true
          } else false
+      }
+
+      private def addToDisposal( toDispose: MSet[ Proc ], p: Proc )( implicit tx: ProcTxn ) {
+         if( toDispose.contains( p )) return
+         toDispose += p
+         val more = (p.audioInputs.flatMap( _.edges.map( _.sourceVertex )) ++
+                     p.audioOutputs.flatMap( _.edges.map( _.targetVertex )))
+         more.foreach( addToDisposal( toDispose, _ )) // XXX tail rec 
+      }
+
+      private def disposeProc {
+println( "DISPOSE " + proc )
+         ProcTxn.atomic { implicit t =>
+            proc.anatomy match {
+               case ProcFilter => disposeFilter
+               case _ => disposeGenDiff
+            }
+         }
+      }
+
+      private def disposeFilter( implicit tx: ProcTxn ) {
+         val in   = proc.audioInput( "in" )
+         val out  = proc.audioOutput( "out" )
+         val ines = in.edges.toSeq
+         val outes= out.edges.toSeq
+         if( ines.size > 1 ) println( "WARNING : Filter is connected to more than one input!" )
+         outes.foreach( oute => out ~/> oute.in )
+         ines.headOption.foreach( ine => {
+            outes.foreach( oute => ine.out ~> oute.in )
+         })
+         // XXX tricky: this needs to be last, so that
+         // the pred out's bus isn't set to physical out
+         // (which is currently not undone by AudioBusImpl)
+         ines.foreach( ine => ine.out ~/> in )
+         proc.dispose
+      }
+
+      private def disposeGenDiff( implicit tx: ProcTxn ) {
+         val toDispose = MSet.empty[ Proc ]
+         addToDisposal( toDispose, proc )
+         toDispose.foreach( p => {
+            val ines = p.audioInputs.flatMap( _.edges ).toSeq // XXX
+            val outes= p.audioOutputs.flatMap( _.edges ).toSeq // XXX
+            outes.foreach( oute => oute.out ~/> oute.in )
+            ines.foreach( ine => ine.out ~/> ine.in )
+            p.dispose
+         })
       }
 
       protected def boundsResized {
@@ -189,11 +296,15 @@ object NuagesPanel {
       }
 
       protected def renderDetail( g: Graphics2D, vi: VisualItem ) {
-         if( valid ) {
-            g.setColor( if( playing ) colrPlaying else colrStopped )
+         if( stateVar.valid ) {
+            g.setColor( if( stateVar.playing ) {
+                  if( stateVar.bypassed ) colrBypassed else colrPlaying
+               } else colrStopped
+            )
             g.fill( playArea )
          }
-         g.setColor( ColorLib.getColor( vi.getStrokeColor ))
+//         g.setColor( ColorLib.getColor( vi.getStrokeColor ))
+         g.setColor( if( disposeAfterFade ) Color.red else Color.white )
          g.draw( gp )
 
          val font = Wolkenpumpe.condensedFont.deriveFont( diam * vi.getSize().toFloat * 0.33333f )
@@ -238,7 +349,7 @@ object NuagesPanel {
 
    private[nuages] case class VisualMapping( mapping: ControlBusMapping, pEdge: Edge )
 
-   private[nuages] case class VisualControl( main: NuagesPanel, control: ProcControl, pNode: PNode, pEdge: Edge )
+   private[nuages] case class VisualControl( control: ProcControl, pNode: PNode, pEdge: Edge )( vProc: => VisualProc )
    extends VisualParam {
       import VisualData._
 
@@ -252,18 +363,21 @@ object NuagesPanel {
       private val valueArea      = new Area()
 
       def name : String = control.name
+      def main : NuagesPanel = vProc.main
 
       private var drag : Option[ Drag ] = None
 
+//      private def isValid = vProc.isValid
+
       override def itemPressed( vi: VisualItem, e: MouseEvent, pt: Point2D ) : Boolean = {
-         if( !valid ) return false
+         if( !vProc.isAlive ) return false
 //         if( super.itemPressed( vi, e, pt )) return true
 
          if( containerArea.contains( pt.getX() - r.getX(), pt.getY() - r.getY() )) {
             val dy   = r.getCenterY() - pt.getY()
             val dx   = pt.getX() - r.getCenterX()
             val ang  = math.max( 0.0, math.min( 1.0, (((-math.atan2( dy, dx ) / math.Pi + 3.5) % 2.0) - 0.25) / 1.5 ))
-            val instant = main.transition( 0 ) == Instant
+            val instant = !vProc.state.playing || vProc.state.bypassed || main.transition( 0 ) == Instant                                                 
             val vStart = if( e.isAltDown() ) {
 //               val res = math.min( 1.0f, (((ang / math.Pi + 3.25) % 2.0) / 1.5).toFloat )
 //               if( ang != value ) {
@@ -337,7 +451,7 @@ object NuagesPanel {
       }
 
       protected def renderDetail( g: Graphics2D, vi: VisualItem ) {
-         if( valid ) {
+         if( vProc.state.valid ) {
             val v = value.currentApprox
             if( renderedValue != v ) {
                updateRenderValue( v )
@@ -397,9 +511,6 @@ with ProcFactoryProvider {
    }
 
    private val AGGR_PROC            = "aggr"
-   private val GROUP_GRAPH          = "graph"
-   private val GROUP_NODES          = "graph.nodes"
-   private val GROUP_EDGES          = "graph.edges"
 //   private val GROUP_PAUSED         = "paused"
    private val ACTION_LAYOUT        = "layout"
    private val ACTION_LAYOUT_ANIM   = "layout-anim"
@@ -532,7 +643,7 @@ with ProcFactoryProvider {
       display.setSize( 800, 600 )
 //      display.setItemSorter( new TreeDepthItemSorter() )
 //      display.addControlListener( new DragControl() )
-      display.addControlListener( new ZoomToFitControl() )
+//      display.addControlListener( new ZoomToFitControl() )
       display.addControlListener( new ZoomControl() )
       display.addControlListener( new WheelZoomControl() )
       display.addControlListener( new PanControl() )
@@ -547,7 +658,7 @@ with ProcFactoryProvider {
 ////      dragTgtHandle.setVisible( false )
 ////      display.addControlListener( new ConnectControl( vg, dragTgtHandle ))
 //      display.addControlListener( new ConnectControl( g, dummy, dragTgtHandle, vis, GROUP_GRAPH ))
-      display.addControlListener( new ConnectControl )
+      display.addControlListener( new ConnectControl( vis ))
       display.setHighQuality( true )
 
       // ------------------------------------------------
@@ -667,12 +778,12 @@ with ProcFactoryProvider {
          (pParamNode, pParamEdge, vi)
       }
 
-      val vProc = {
+      lazy val vProc: VisualProc = {
          val vParams: Map[ String, VisualParam ] = p.params.collect({
             case pFloat: ProcParamFloat => {
                val (pParamNode, pParamEdge, vi) = createNode
                val pControl   = p.control( pFloat.name )
-               val vControl   = VisualControl( panel, pControl, pParamNode, pParamEdge )
+               val vControl   = VisualControl( pControl, pParamNode, pParamEdge )( vProc )
 //               val mVal       = u.controls( pControl )
 //               vControl.value = pFloat.spec.unmap( pFloat.spec.clip( mVal ))
                vi.set( COL_NUAGES, vControl )
@@ -697,10 +808,13 @@ with ProcFactoryProvider {
          })( breakOut )
          val res = VisualProc( panel, p, pNode, aggr, vParams )
 //         res.playing = u.playing == Some( true )
+//         res.state =
          res
       }
 
       vi.set( COL_NUAGES, vProc )
+// XXX this doesn't work. the vProc needs initial layout...
+//      if( p.anatomy == ProcDiff ) vi.setFixed( true )
       procMap += p -> vProc
 
 //      if( u.mappings.nonEmpty ) topMappingsChangedI( u.mappings )
@@ -785,17 +899,23 @@ with ProcFactoryProvider {
 //                      audioBusesConnected: ISet[ ProcEdge ],
 //                      audioBusesDisconnected: ISet[ ProcEdge ])
    private def procUpdate( u: Proc.Update ) {
+//      if( verbose ) println( "procUpdate : " + u )
       val p = u.proc
       procMap.get( p ).foreach( vProc => {
-         u.playing.foreach( state => topProcPlaying( p, state ))
+//         u.playing.foreach( state => topProcPlaying( p, state ))
+//         if( u.state != Proc.STATE_UNDEFINED ) topProcState( vProc, u.state )
+         if( u.state.valid ) {
+println( "STATE = " + u.state )
+            vProc.state = u.state
+         }
          if( u.controls.nonEmpty )               topControlsChanged( u.controls )
 //         if( u.mappings.nonEmpty )               topMappingsChanged( u.mappings )
          if( u.audioBusesConnected.nonEmpty )    topAddEdges( u.audioBusesConnected )
          if( u.audioBusesDisconnected.nonEmpty ) topRemoveEdges( u.audioBusesDisconnected )
-         if( !vProc.valid ) {
-            vProc.valid = true
-            vProc.params.foreach( _._2.valid = true )
-         }
+//         if( !vProc.valid ) {
+//            vProc.valid = true
+//            vProc.params.foreach( _._2.valid = true )
+//         }
       })
    }
 
@@ -816,18 +936,38 @@ with ProcFactoryProvider {
       }
    }
 
+   private def tryDeleteAggr( vProc: VisualProc, retries: Int ) {
+      new java.util.Timer().schedule( new TimerTask {
+         def run = try {
+            println( "RETRYING AGGR..." )
+            aggrTable.removeTuple( vProc.aggr )
+         }
+         catch { case e => {
+            System.out.print( "CAUGHT : " ); e.printStackTrace()
+            if( retries > 0 ) tryDeleteAggr( vProc, retries - 1 )
+         }}
+      }, 2000 )
+   }
+
    private def topRemoveProc( vProc: VisualProc ) {
       val vi = vis.getVisualItem( GROUP_GRAPH, vProc.pNode )
       g.removeNode( vProc.pNode )
 //      procG.removeTuple( vi )
-//      aggrTable.removeItem( vProc.aggr )
-      aggrTable.removeTuple( vProc.aggr ) // XXX OK???
+      try {
+         aggrTable.removeTuple( vProc.aggr )
+      }
+      catch { case e => {  // FUCKING PREFUSE BUG?!
+         System.out.print( "CAUGHT : " ); e.printStackTrace()
+         tryDeleteAggr( vProc, 3 )
+      }}
+//      aggrTable.removeTuple( vProc.aggr ) // XXX OK???
       vProc.params.values.foreach( vParam => {
 // WE MUST NOT REMOVE THE EDGES, AS THE REMOVAL OF
 // VPROC.PNODE INCLUDES ALL THE EDGES!
 //         g.removeEdge( vParam.pEdge )
          g.removeNode( vParam.pNode )
       })
+//      aggrTable.removeTuple( vProc.aggr ) // XXX OK???
       procMap -= vProc.proc
    }
 
@@ -844,13 +984,14 @@ with ProcFactoryProvider {
          startAnimation
       }
    }
-
-   private def topProcPlaying( p: Proc, state: Boolean ) {
-      procMap.get( p ).foreach( vProc => {
-         vProc.playing = state
-         // damageReport XXX
-      })
-   }
+//
+//   private def topProcState( vProc: VisualProc, state: Int ) {
+////      procMap.get( p ).foreach( vProc => {
+//println( "STATE = " + state )
+//         vProc.state = state
+//         // damageReport XXX
+////      })
+//   }
 
    private def topRemoveControlMap( vControl: VisualControl, vMap: VisualMapping ) {
       g.removeEdge( vMap.pEdge )

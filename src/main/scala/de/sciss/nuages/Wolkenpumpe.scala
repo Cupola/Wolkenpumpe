@@ -66,6 +66,7 @@ object Wolkenpumpe /* extends TxnModel[ NuagesUpdate ]*/ {
          case BootingServer.Preparing( srv ) =>
          case BootingServer.Running( srv ) => {
             s = srv
+            srv.dumpOSC(1)
             ProcDemiurg.addServer( srv )
             val recordPath = "/tmp"
             val masterBus  = new AudioBus( srv, 0, 2 )
@@ -88,7 +89,7 @@ object Wolkenpumpe /* extends TxnModel[ NuagesUpdate ]*/ {
                }
 
                filter( "Filt" ) {
-                  val pfreq = pAudio( "freq", ParamSpec( -1, 1 ), 0.54 )
+                  val pfreq = pAudio( "freq", ParamSpec( -1, 1 ), 0.7 )
                   val pmix  = pAudio( "mix", ParamSpec( 0, 1 ), 1 )
 
                   graph { in =>

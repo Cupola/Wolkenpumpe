@@ -1,7 +1,7 @@
 ==== Nuages ====
 
 needed for SMC:
-- bypass filter
+[OK] - bypass filter
 [KIND OF WORKING] - insert filter (a: new)
 - dispose proc
 [OK] - lazy slider for xfade/ glide
@@ -19,6 +19,7 @@ useful for SMC:
 - diskin based procs: track playback position
 - meter
 - insert filter (b: existing via drag)
+- center gravity
 
 other:
 [OK] - gui update glide values

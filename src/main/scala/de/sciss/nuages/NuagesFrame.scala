@@ -49,10 +49,16 @@ extends JFrame( "Wolkenpumpe") with ProcDemiurg.Listener {
    val panel               = new NuagesPanel( config.server )
    private val pfPanel     = Box.createVerticalBox
    val transition          = new NuagesTransitionPanel( panel )
-   private val models      = Map[ ProcAnatomy, ProcFactoryListModel ](
-      ProcGen     -> createProcFactoryView( pfPanel )( panel.genFactory = _ ),
-      ProcFilter  -> createProcFactoryView( pfPanel )( panel.filterFactory = _ ),
-      ProcDiff    -> createProcFactoryView( pfPanel )( panel.diffFactory = _ ))
+   private val models: Map[ ProcAnatomy, FactoryView ] = Map(
+      ProcGen     -> createProcFactoryView( pfPanel, 4 ) { selO =>
+         if( selO.isDefined ) models( ProcFilter ).list.clearSelection()
+         panel.genFactory = selO
+      },
+      ProcFilter  -> createProcFactoryView( pfPanel, 12 ) { selO =>
+         if( selO.isDefined ) models( ProcGen ).list.clearSelection()
+         panel.filterFactory = selO
+      },
+      ProcDiff    -> createProcFactoryView( pfPanel, 4 )( panel.diffFactory = _ ))
 
    val grpMaster = Group.tail( config.server )
    
@@ -113,26 +119,26 @@ extends JFrame( "Wolkenpumpe") with ProcDemiurg.Listener {
          val byAnatomy = u.factoriesRemoved.groupBy( _.anatomy )
          byAnatomy foreach { tup =>
             val (ana, facts) = tup
-            models.get( ana ).foreach( _.remove( facts.toSeq: _* ))
+            models.get( ana ).foreach( _.model.remove( facts.toSeq: _* ))
          }
       }
       if( u.factoriesAdded.nonEmpty ) {
          val byAnatomy = u.factoriesAdded.groupBy( _.anatomy ) 
          byAnatomy foreach { tup =>
             val (ana, facts) = tup
-            models.get( ana ).foreach( _.add( facts.toSeq: _* ))
+            models.get( ana ).foreach( _.model.add( facts.toSeq: _* ))
          }
       }
    }}
 
-   private def createProcFactoryView( parent: Container )
-                                    ( fun: Option[ ProcFactory ] => Unit ) : ProcFactoryListModel = {
+   private def createProcFactoryView( parent: Container, prefRows: Int )
+                                    ( fun: Option[ ProcFactory ] => Unit ) : FactoryView = {
       val model   = new ProcFactoryListModel
       val ggList  = new JList( model )
       ggList.setBackground( Color.black )
       ggList.setCellRenderer( ProcFactoryCellRenderer )
       ggList.setFixedCellWidth( 64 )
-      ggList.setVisibleRowCount( 10 )
+      ggList.setVisibleRowCount( prefRows )
       ggList.setSelectionMode( ListSelectionModel.SINGLE_SELECTION )
       ggList.addListSelectionListener( new ListSelectionListener {
          def valueChanged( e: ListSelectionEvent ) {
@@ -148,8 +154,10 @@ extends JFrame( "Wolkenpumpe") with ProcDemiurg.Listener {
          ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER )
       parent.add( ggScroll )
 
-      model
+      FactoryView( ggList, model )
    }
+
+   private case class FactoryView( list: JList, model: ProcFactoryListModel )
 
    override def dispose {
       ProcTxn.atomic { implicit t => ProcDemiurg.removeListener( frame )}

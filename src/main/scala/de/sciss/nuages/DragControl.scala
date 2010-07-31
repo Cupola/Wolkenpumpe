@@ -8,10 +8,48 @@ import java.awt.geom.Point2D
 import prefuse.{Visualization, Display}
 import prefuse.render.EdgeRenderer
 import prefuse.visual.{EdgeItem, NodeItem, AggregateItem, VisualItem}
+import de.sciss.synth.proc.ProcDiff
 
 object DragControl {
+   import NuagesPanel._
+
    private val csrHand     = Cursor.getPredefinedCursor( Cursor.HAND_CURSOR )
    private val csrDefault  = Cursor.getDefaultCursor()
+
+   def setSmartFixed( vis: Visualization, vi: VisualItem, state: Boolean ) {
+      if( state == true ) {
+         vi.setFixed( true )
+         return
+      }
+      getVisualData( vis, vi ) match {
+         case Some( vProc: VisualProc ) if( vProc.proc.anatomy == ProcDiff ) => {
+//println( "FIXED" )
+            vi.setFixed( true )
+         }
+         case _ => {
+//println( "EGAL" )
+            vi.setFixed( false )
+         }
+      }
+   }
+
+// XXX QUE MIERDA
+//   def getVisualData( vi: VisualItem ) : Option[ VisualData ] = {
+//      if( vi.canGet( COL_NUAGES, classOf[ VisualData ])) {
+//         val data = vi.get( COL_NUAGES ).asInstanceOf[ VisualData ]
+//         if( data != null ) Some( data ) else None
+//      } else None
+//   }
+
+   def getVisualData( vis: Visualization, vi: VisualItem ) : Option[ VisualData ] = {
+      vis.getRenderer( vi ) match {
+         case pr: NuagesProcRenderer => {
+            val data = vi.get( COL_NUAGES ).asInstanceOf[ VisualData ]
+            if( data != null ) Some( data ) else None
+         }
+         case _ => None
+      }
+   }
 }
 
 class DragControl( vis: Visualization ) extends ControlAdapter {
@@ -159,7 +197,7 @@ class DragControl( vis: Visualization ) extends ControlAdapter {
                setFixed( vi2, fixed )
             }
          }
-         case _ => vi.setFixed( fixed )
+         case _ => setSmartFixed( vis, vi, fixed )
       }
    }
 
