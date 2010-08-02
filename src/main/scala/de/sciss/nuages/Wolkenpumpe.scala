@@ -37,11 +37,11 @@ import javax.swing.WindowConstants
 //                         filtersAdded: ISet[ ProcFactory ], filtersRemoved: ISet[ ProcFactory ])
 
 /**
- *    @version 0.11, 13-Jul-10
+ *    @version 0.13, 02-Aug-10
  */
 object Wolkenpumpe /* extends TxnModel[ NuagesUpdate ]*/ {
    val name          = "Wolkenpumpe"
-   val version       = 0.12
+   val version       = 0.13
    val copyright     = "(C)opyright 2004-2010 Hanns Holger Rutz"
    def versionString = (version + 0.001).toString.substring( 0, 4 )
 
