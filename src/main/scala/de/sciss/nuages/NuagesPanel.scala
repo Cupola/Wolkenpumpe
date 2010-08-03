@@ -1001,7 +1001,7 @@ println( "STATE = " + u.state )
    private def topAddControlMap( vControl: VisualControl, m: ControlBusMapping ) {
       vControl.mapping = m match {
          case ma: ControlABusMapping => {
-            val aout = ma.edge.out
+            val aout = ma.out // edge.out
             procMap.get( aout.proc ).flatMap( vProc2 => {
                vProc2.params.get( aout.name ) match {
                   case Some( vBus: VisualAudioOutput ) => {
