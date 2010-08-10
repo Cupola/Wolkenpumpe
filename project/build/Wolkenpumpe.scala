@@ -8,7 +8,7 @@ class WolkenpumpeProject( info: ProjectInfo ) extends DefaultProject( info ) {
    // stupidly, we need to redefine the dependancy here, because
    // for some reason, sbt will otherwise try to look in the maven repo
    val dep1 = "de.sciss" %% "scalaaudiofile" % "0.13"
-   val dep2 = "de.sciss" %% "scalaosc" % "0.18"
+   val dep2 = "de.sciss" %% "scalaosc" % "0.19"
    val dep3 = "de.sciss" %% "scalacollider" % "0.17"
    val dep4 = "prefuse" % "prefuse" % "beta-20071021" from "http://github.com/downloads/Sciss/ScalaColliderSwing/prefuse-beta-20071021.jar"
    val dep5 = "de.sciss" %% "scalacolliderswing" % "0.17"
