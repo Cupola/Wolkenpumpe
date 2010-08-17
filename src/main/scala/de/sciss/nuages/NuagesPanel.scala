@@ -56,7 +56,7 @@ import java.util.TimerTask
  *    @version 0.11, 21-Jul-10
  */
 object NuagesPanel {
-   var verbose = true
+   var verbose = false
 
    val GROUP_GRAPH          = "graph"
    val GROUP_NODES          = "graph.nodes"
@@ -905,7 +905,7 @@ with ProcFactoryProvider {
 //         u.playing.foreach( state => topProcPlaying( p, state ))
 //         if( u.state != Proc.STATE_UNDEFINED ) topProcState( vProc, u.state )
          if( u.state.valid ) {
-println( "STATE = " + u.state )
+            if( verbose ) println( "procUpdate : u.state = " + u.state )
             vProc.state = u.state
          }
          if( u.controls.nonEmpty )               topControlsChanged( u.controls )
@@ -943,7 +943,8 @@ println( "STATE = " + u.state )
             aggrTable.removeTuple( vProc.aggr )
          }
          catch { case e => {
-            System.out.print( "CAUGHT : " ); e.printStackTrace()
+//            System.out.print( "CAUGHT : " ); e.printStackTrace()
+            println( "CAUGHT: " + e.getClass().getName() )
             if( retries > 0 ) tryDeleteAggr( vProc, retries - 1 )
          }}
       }, 2000 )
@@ -957,7 +958,8 @@ println( "STATE = " + u.state )
          aggrTable.removeTuple( vProc.aggr )
       }
       catch { case e => {  // FUCKING PREFUSE BUG?!
-         System.out.print( "CAUGHT : " ); e.printStackTrace()
+//         System.out.print( "CAUGHT : " ); e.printStackTrace()
+         println( "CAUGHT: " + e.getClass().getName() )
          tryDeleteAggr( vProc, 3 )
       }}
 //      aggrTable.removeTuple( vProc.aggr ) // XXX OK???
