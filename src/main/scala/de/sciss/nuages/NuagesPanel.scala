@@ -47,7 +47,7 @@ import de.sciss.synth.proc._
 import prefuse.render._
 import prefuse.action.assignment.{FontAction, ColorAction}
 import java.awt._
-import event.MouseEvent
+import event.{ ActionEvent, ActionListener, MouseEvent }
 import geom._
 import prefuse.visual.{NodeItem, AggregateItem, VisualItem}
 import java.util.TimerTask
@@ -742,17 +742,17 @@ with ProcFactoryProvider {
 //      pNode.set( PARENT, pParent )
 //   }
 
-   private def topAddProcs( procs: Proc* ) {
-      if( verbose ) println( "topAddProcs : " + procs )
-//      pendingProcs ++= procs
-      // observer
-      vis.synchronized {
-         stopAnimation
-         procs.foreach( topAddProc( _ ))
-         startAnimation
-      }
-      ProcTxn.atomic { implicit t => procs.foreach( _.addListener( procListener ))}
-   }
+//   private def topAddProcs( procs: Proc* ) {
+//      if( verbose ) println( "topAddProcs : " + procs )
+////      pendingProcs ++= procs
+//      // observer
+//      vis.synchronized {
+//         stopAnimation
+//         procs.foreach( topAddProc( _ ))
+//         startAnimation
+//      }
+//      ProcTxn.atomic { implicit t => procs.foreach( _.addListener( procListener ))}
+//   }
 
    private def topAddProc( p: Proc ) {
       val pNode   = g.addNode()
@@ -764,6 +764,7 @@ with ProcFactoryProvider {
          vi.setEndY( loc.getY() )
       })
       val aggr = aggrTable.addItem().asInstanceOf[ AggregateItem ]
+//println( "+ AGGR = " + aggr )
       aggr.addItem( vi )
 
       def createNode = {
@@ -919,49 +920,72 @@ with ProcFactoryProvider {
       })
    }
 
-   private def topoUpdate( u: ProcWorld.Update ) {
-      if( u.procsRemoved.nonEmpty ) topRemoveProcs( u.procsRemoved.toSeq: _* )
-      if( u.procsAdded.nonEmpty )   topAddProcs(    u.procsAdded.toSeq:   _* )
-   }
+//   private def topoUpdate( u: ProcWorld.Update ) {
+//      if( u.procsRemoved.nonEmpty ) topRemoveProcs( u.procsRemoved.toSeq: _* )
+//      if( u.procsAdded.nonEmpty )   topAddProcs(    u.procsAdded.toSeq:   _* )
+//   }
 
-   private def topRemoveProcs( procs: Proc* ) {
-      if( verbose ) println( "topRemoveProcs : " + procs )
+//   private def topRemoveProcs( procs: Proc* ) {
+//      if( verbose ) println( "topRemoveProcs : " + procs )
+//      vis.synchronized {
+//         stopAnimation
+//         ProcTxn.atomic { implicit t => procs.foreach( _.removeListener( procListener ))}
+//         procs.foreach( p => {
+//            procMap.get( p ).map( topRemoveProc( _ )) // .getOrElse( pendingProcs -= p )
+//         })
+//         startAnimation
+//      }
+//   }
+
+   private def topoUpdate( u: ProcWorld.Update ) {
       vis.synchronized {
-         stopAnimation
-         ProcTxn.atomic { implicit t => procs.foreach( _.removeListener( procListener ))}
-         procs.foreach( p => {
-            procMap.get( p ).map( topRemoveProc( _ )) // .getOrElse( pendingProcs -= p )
-         })
+         ProcTxn.atomic { implicit t =>
+            u.procsRemoved foreach { p =>
+               p.removeListener( procListener )
+               procMap.get( p ).map( topRemoveProc( _ ))
+            }
+            u.procsAdded foreach { p =>
+               topAddProc( p )
+               p.addListener( procListener )
+            }
+         }
          startAnimation
       }
    }
 
-   private def tryDeleteAggr( vProc: VisualProc, retries: Int ) {
-      new java.util.Timer().schedule( new TimerTask {
-         def run = try {
-            println( "RETRYING AGGR..." )
-            aggrTable.removeTuple( vProc.aggr )
-         }
-         catch { case e => {
-//            System.out.print( "CAUGHT : " ); e.printStackTrace()
-            println( "CAUGHT: " + e.getClass().getName() )
-            if( retries > 0 ) tryDeleteAggr( vProc, retries - 1 )
-         }}
-      }, 2000 )
-   }
+//   private def tryDeleteAggr( vProc: VisualProc ) {
+//      var retries = 3
+//      lazy val tim: javax.swing.Timer = new javax.swing.Timer( 2000, new ActionListener {
+//         def actionPerformed( e: ActionEvent ) = try {
+////            println( "RETRYING AGGR..." )
+//            vis.synchronized {
+//               println( "RETRY - AGGR = " + vProc.aggr )
+//               aggrTable.removeTuple( vProc.aggr )
+//            }
+//            tim.stop
+//         }
+//         catch { case e => {
+//            Predef.print( "CAUGHT : " ); e.printStackTrace()
+////            println( "CAUGHT: " + e.getClass().getName() )
+//            if( retries == 0 ) tim.stop else retries -= 1
+//         }}
+//      })
+//      tim.start
+//   }
 
    private def topRemoveProc( vProc: VisualProc ) {
-      val vi = vis.getVisualItem( GROUP_GRAPH, vProc.pNode )
-      g.removeNode( vProc.pNode )
+//      val vi = vis.getVisualItem( GROUP_GRAPH, vProc.pNode )
 //      procG.removeTuple( vi )
-      try {
+//      try {
+//         println( "- AGGR = " + vProc.aggr )
          aggrTable.removeTuple( vProc.aggr )
-      }
-      catch { case e => {  // FUCKING PREFUSE BUG?!
-//         System.out.print( "CAUGHT : " ); e.printStackTrace()
-         println( "CAUGHT: " + e.getClass().getName() )
-         tryDeleteAggr( vProc, 3 )
-      }}
+//      }
+//      catch { case e => {  // FUCKING PREFUSE BUG?!
+//         Predef.print( "CAUGHT : " ); e.printStackTrace()
+////         println( "CAUGHT: " + e.getClass().getName() )
+//         tryDeleteAggr( vProc )
+//      }}
+      g.removeNode( vProc.pNode )
 //      aggrTable.removeTuple( vProc.aggr ) // XXX OK???
       vProc.params.values.foreach( vParam => {
 // WE MUST NOT REMOVE THE EDGES, AS THE REMOVAL OF

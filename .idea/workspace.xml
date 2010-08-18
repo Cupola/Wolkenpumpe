@@ -2,6 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" readonly="true" id="1c14158b-d5f6-40e2-8db9-40791066164b" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Wolkenpumpe.iml" afterPath="$PROJECT_DIR$/Wolkenpumpe.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/project/build/Wolkenpumpe.scala" afterPath="$PROJECT_DIR$/project/build/Wolkenpumpe.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/project/build.properties" afterPath="$PROJECT_DIR$/project/build.properties" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/de/sciss/nuages/NuagesPanel.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/nuages/NuagesPanel.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
@@ -63,28 +66,91 @@
   <component name="FileColors" enabled="true" enabledForTabs="true" />
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="Wolkenpumpe.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/project/build/Wolkenpumpe.scala">
+      <file leaf-file-name="Table.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="jar://$PROJECT_DIR$/src/prefuse-src.zip!/src/prefuse/data/Table.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="16" column="0" selection-start="805" selection-end="805" vertical-scroll-proportion="0.0">
+            <state line="372" column="0" selection-start="14287" selection-end="14287" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="NuagesPanel.scala" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="TableTuple.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="jar://$PROJECT_DIR$/src/prefuse-src.zip!/src/prefuse/data/tuple/TableTuple.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="50" column="0" selection-start="1238" selection-end="1238" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="NuagesPanel.scala" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/nuages/NuagesPanel.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="952" column="37" selection-start="37364" selection-end="37364" vertical-scroll-proportion="0.79831934">
+            <state line="766" column="0" selection-start="29912" selection-end="29912" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ClickControl.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/nuages/ClickControl.scala">
+      <file leaf-file-name="build.properties" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/project/build.properties">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="94" column="17" selection-start="3070" selection-end="3075" vertical-scroll-proportion="0.0">
+            <state line="5" column="20" selection-start="143" selection-end="143" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="AggregateTable.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="jar://$PROJECT_DIR$/src/prefuse-src.zip!/src/prefuse/visual/AggregateTable.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="118" column="0" selection-start="4108" selection-end="4108" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="AbstractTreeMap.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="jar://$PROJECT_DIR$/src/prefuse-src.zip!/src/prefuse/util/collections/AbstractTreeMap.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="513" column="0" selection-start="14221" selection-end="14221" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Wolkenpumpe.scala" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/project/build/Wolkenpumpe.scala">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="13" column="0" selection-start="311" selection-end="763" vertical-scroll-proportion="0.39473686">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ProcTxn.class" pinned="false" current="false" current-in-tab="false">
+        <entry file="jar://$PROJECT_DIR$/lib_managed/scala_2.8.0/compile/soundprocesses_2.8.0-0.16.jar!/de/sciss/synth/proc/ProcTxn.class">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="115" column="0" selection-start="10377" selection-end="10377" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="CascadedTable.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="jar://$PROJECT_DIR$/src/prefuse-src.zip!/src/prefuse/data/CascadedTable.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="372" column="0" selection-start="13018" selection-end="13018" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="RowManager.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="jar://$PROJECT_DIR$/src/prefuse-src.zip!/src/prefuse/data/util/RowManager.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="76" column="0" selection-start="2058" selection-end="2058" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -111,9 +177,9 @@
         <option value="$PROJECT_DIR$/src/main/scala/de/sciss/nuages/ClickControl.scala" />
         <option value="$PROJECT_DIR$/src/main/scala/de/sciss/nuages/NuagesFrame.scala" />
         <option value="$PROJECT_DIR$/src/main/scala/de/sciss/nuages/Wolkenpumpe.scala" />
-        <option value="$PROJECT_DIR$/project/build.properties" />
         <option value="$PROJECT_DIR$/project/build/Wolkenpumpe.scala" />
         <option value="$PROJECT_DIR$/src/main/scala/de/sciss/nuages/NuagesPanel.scala" />
+        <option value="$PROJECT_DIR$/project/build.properties" />
       </list>
     </option>
   </component>
@@ -152,9 +218,8 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Favorites" />
-      <pane id="PackagesPane" />
       <pane id="Scope" />
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -323,30 +388,9 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Wolkenpumpe" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Wolkenpumpe" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="lib_managed" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="scala_2.8.0" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="compile" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
         </subPane>
       </pane>
+      <pane id="Favorites" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -362,9 +406,9 @@
     <property name="GoToClass.toSaveIncludeLibraries" value="false" />
     <property name="MemberChooser.showClasses" value="true" />
     <property name="GoToClass.includeLibraries" value="false" />
-    <property name="dynamic.classpath" value="false" />
-    <property name="options.searchVisible" value="true" />
     <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="options.searchVisible" value="true" />
+    <property name="dynamic.classpath" value="false" />
   </component>
   <component name="RunManager" selected="Application.Wolkenpumpe">
     <configuration default="true" type="Remote" factoryName="Remote">
@@ -519,7 +563,13 @@
       <option name="PASS_PARENT_ENVS" value="true" />
       <module name="Wolkenpumpe" />
       <envs />
+      <RunnerSettings RunnerId="Debug">
+        <option name="DEBUG_PORT" value="50036" />
+        <option name="TRANSPORT" value="0" />
+        <option name="LOCAL" value="true" />
+      </RunnerSettings>
       <RunnerSettings RunnerId="Run" />
+      <ConfigurationWrapper RunnerId="Debug" />
       <ConfigurationWrapper RunnerId="Run" />
       <method />
     </configuration>
@@ -576,14 +626,14 @@
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32908162" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4387755" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32908162" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32908162" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32908162" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24943651" sideWeight="0.33418366" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.27691165" sideWeight="0.6632653" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25760952" sideWeight="0.6632653" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32780612" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -628,63 +678,112 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/nuages/NuagesTransitionPanel.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/nuages/ClickControl.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="20" column="0" selection-start="507" selection-end="658" vertical-scroll-proportion="0.01986755" />
+        <state line="94" column="17" selection-start="3070" selection-end="3075" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/nuages/NuagesConfig.scala">
+    <entry file="jar://$PROJECT_DIR$/src/prefuse-src.zip!/src/prefuse/util/collections/DefaultLiteralComparator.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="7" column="23" selection-start="117" selection-end="129" vertical-scroll-proportion="0.13907285" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/nuages/ConnectControl.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="41" column="0" selection-start="1457" selection-end="1457" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/nuages/DragControl.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="2" column="73" selection-start="63" selection-end="63" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/nuages/DSL.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/nuages/NuagesFrame.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="140" column="37" selection-start="5395" selection-end="5395" vertical-scroll-proportion="0.21589404" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/nuages/Wolkenpumpe.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="43" column="27" selection-start="1515" selection-end="1515" vertical-scroll-proportion="0.01986755" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/project/build.properties">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="5" column="20" selection-start="143" selection-end="143" vertical-scroll-proportion="0.09933775" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/project/build/Wolkenpumpe.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="16" column="0" selection-start="805" selection-end="805" vertical-scroll-proportion="0.0">
+        <state line="35" column="0" selection-start="1112" selection-end="1112" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/nuages/ClickControl.scala">
+    <entry file="jar://$PROJECT_DIR$/src/prefuse-src.zip!/src/prefuse/util/collections/AbstractLiteralIterator.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="94" column="17" selection-start="3070" selection-end="3075" vertical-scroll-proportion="0.0">
+        <state line="7" column="0" selection-start="164" selection-end="164" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/src/prefuse-src.zip!/src/prefuse/util/collections/IntIterator.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="12" column="0" selection-start="510" selection-end="510" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/src/prefuse-src.zip!/src/prefuse/util/collections/IntIntTreeMap.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="193" column="0" selection-start="5544" selection-end="5544" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/src/prefuse-src.zip!/src/prefuse/data/util/TreeIndex.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="447" column="0" selection-start="15262" selection-end="15262" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/src/prefuse-src.zip!/src/prefuse/data/util/RowManager.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="76" column="0" selection-start="2058" selection-end="2058" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/src/prefuse-src.zip!/src/prefuse/data/tuple/TableTuple.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="50" column="0" selection-start="1238" selection-end="1238" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/src/prefuse-src.zip!/src/prefuse/data/CascadedTable.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="372" column="0" selection-start="13018" selection-end="13018" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/src/prefuse-src.zip!/src/prefuse/data/Table.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="372" column="0" selection-start="14287" selection-end="14287" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/src/prefuse-src.zip!/src/prefuse/visual/AggregateTable.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="118" column="0" selection-start="4108" selection-end="4108" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/src/prefuse-src.zip!/src/prefuse/util/collections/AbstractTreeMap.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="513" column="0" selection-start="14221" selection-end="14221" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/lib_managed/scala_2.8.0/compile/soundprocesses_2.8.0-0.16.jar!/de/sciss/synth/proc/ProcTxn.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="115" column="0" selection-start="10377" selection-end="10377" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/nuages/NuagesPanel.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="952" column="37" selection-start="37364" selection-end="37364" vertical-scroll-proportion="0.79831934">
+        <state line="766" column="0" selection-start="29912" selection-end="29912" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/project/build.properties">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="5" column="20" selection-start="143" selection-end="143" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/project/build/Wolkenpumpe.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="13" column="0" selection-start="311" selection-end="763" vertical-scroll-proportion="0.39473686">
           <folding />
         </state>
       </provider>
