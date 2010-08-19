@@ -900,6 +900,7 @@ with ProcFactoryProvider {
 //                      audioBusesConnected: ISet[ ProcEdge ],
 //                      audioBusesDisconnected: ISet[ ProcEdge ])
    private def procUpdate( u: Proc.Update ) {
+println( "" + new java.util.Date() + " procUpdate: " + u )
 //      if( verbose ) println( "procUpdate : " + u )
       val p = u.proc
       procMap.get( p ).foreach( vProc => {
@@ -938,6 +939,7 @@ with ProcFactoryProvider {
 //   }
 
    private def topoUpdate( u: ProcWorld.Update ) {
+println( "" + new java.util.Date() + " topoUpdate : " + u )
       vis.synchronized {
          ProcTxn.atomic { implicit t =>
             u.procsRemoved foreach { p =>
@@ -1003,7 +1005,12 @@ with ProcFactoryProvider {
          stopAnimation
          edges.foreach( e => {
             edgeMap.get( e ).foreach( pEdge => {
-               g.removeEdge( pEdge )
+               try {
+                  g.removeEdge( pEdge )
+               }
+               catch {
+                  case ex => println( "" + new java.util.Date() + " CAUGHT " + e + " : " + ex.getClass().getName )
+               }
                edgeMap -= e
             })
          })
